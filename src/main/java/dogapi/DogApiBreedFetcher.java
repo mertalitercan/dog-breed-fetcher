@@ -16,7 +16,6 @@ import java.util.*;
  */
 public class DogApiBreedFetcher implements BreedFetcher {
     private final OkHttpClient client = new OkHttpClient();
-
     /**
      * Fetch the list of sub breeds for the given breed from the dog.ceo API.
      * @param breed the breed to fetch sub breeds for
@@ -25,11 +24,31 @@ public class DogApiBreedFetcher implements BreedFetcher {
      */
     @Override
     public List<String> getSubBreeds(String breed) {
-        // TODO Task 1: Complete this method based on its provided documentation
-        //      and the documentation for the dog.ceo API. You may find it helpful
-        //      to refer to the examples of using OkHttpClient from the last lab,
-        //      as well as the code for parsing JSON responses.
-        // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+        String url = "https://dog.ceo/api/breed/" + breed + "/list";
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                throw new BreedNotFoundException(breed);
+            }
+
+            String responseBody = response.body().string();
+            JSONObject responseJson = new JSONObject(responseBody);
+            JSONArray message = responseJson.getJSONArray("message");
+            List<String> subBreeds = new ArrayList<>();
+
+            for (int i = 0; i < message.length(); i++) {
+                subBreeds.add(message.getString(i));
+            }
+
+            return subBreeds;
+
+        } catch (IOException e) {
+            throw new BreedNotFoundException(breed);
+        }
+
     }
 }
